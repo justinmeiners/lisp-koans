@@ -49,9 +49,43 @@
 ;
 ; Your goal is to write the score method.
 
+
+(defun partition (dice)
+  (let ((sorted (sort dice #'<))
+        (results '()))
+    (cons (reduce (lambda (acc x)
+                    (if (or (not acc) (= x (car acc)))
+                      (cons x acc)
+                      (progn
+                        (if acc
+                          (push acc results))
+                        (list x)))) sorted :initial-value '())
+          results)))
+
+(defun score-single (x)
+    (cond ((= x 1) 100)
+          ((= x 5) 50)
+          (t 0)))
+
+
+(defun score-group (group)
+  (multiple-value-bind (singles triples) 
+    (if (>= (length group) 3)
+      (values (subseq group 3) (subseq group 0 3))
+      (values group '()))
+    (+ (cond 
+         ((null triples) 0)
+         ((= (car triples) 1) 1000)
+         (t (* 100 (car triples))))
+       (reduce #'+ (mapcar #'score-single singles)))))
+
+
 (defun score (dice)
-  ; You need to write this method
-)
+    (reduce #'+ (mapcar #'score-group (partition dice))))
+
+
+(score '( 1 1 1 5 1 3 4 5))
+
 
 (define-test test-score-of-an-empty-list-is-zero
     (assert-equal 0 (score nil)))
